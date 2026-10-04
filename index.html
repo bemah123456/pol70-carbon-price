@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>What does $100 a ton of CO₂ mean in actual life?</title>
+<meta name="description" content="A carbon price converted into gallons, therms, kilowatt-hours, cement, steel and plane tickets, plus how the answer to who pays flips with what happens to the revenue.">
+<meta property="og:title" content="What does $100 a ton of CO₂ mean in actual life?">
+<meta property="og:description" content="A carbon price, translated into everyday prices. Drag the slider.">
+<meta property="og:image" content="cover.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #edefea;
+    --paper-raised: #f6f7f4;
+    --ink: #1d2a30;
+    --ink-soft: #4f5d63;
+    --rule: #cbd1cc;
+    --base: #a7b1af;
+    --carbon: #e3a01b;
+    --carbon-text: #8f5f00;
+    --gain: #1f7a6d;
+    --loss: #b5452e;
+    --sign-bg: #1e262b;
+    --sign-ink: #ffb627;
+    --sign-dim: #8a979c;
+    --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #151b1e;
+      --paper-raised: #1c2428;
+      --ink: #e6eae7;
+      --ink-soft: #a6b1b3;
+      --rule: #2f3a3f;
+      --base: #5b686e;
+      --carbon: #f0b12e;
+      --carbon-text: #f0b12e;
+      --gain: #45b8a3;
+      --loss: #e0745a;
+      --sign-bg: #0d1113;
+      --sign-dim: #6f7c81;
+    }
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 5rem); }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 1.125rem;
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration-color: var(--carbon); text-underline-offset: 0.18em; }
+  a:hover { text-decoration-thickness: 2px; }
+  :focus-visible { outline: 3px solid var(--carbon); outline-offset: 2px; }
+  .wrap { max-width: 61rem; margin: 0 auto; padding: 0 1.25rem; }
+  .prose { max-width: 40rem; }
+  p { margin: 0 0 1rem; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 700; line-height: 1.02; margin: 0; letter-spacing: -0.005em; }
+  h2 { font-size: clamp(2rem, 4.4vw, 2.75rem); margin-bottom: 0.9rem; }
+  h3 { font-size: 1.5rem; font-weight: 600; margin: 2rem 0 0.6rem; }
+  .num { font-family: var(--display); font-variant-numeric: tabular-nums; }
+  .carbon-word { color: var(--carbon-text); font-weight: 600; }
+  .small { font-size: 0.95rem; color: var(--ink-soft); }
+  h1 sub, .formula sub, output sub { font-size: 0.55em; vertical-align: baseline; position: relative; top: 0.18em; line-height: 0; }
+
+  /* Hero */
+  header.hero { padding: 3.2rem 0 1.6rem; }
+  .hero h1 { font-size: clamp(2.7rem, 8.4vw, 5.4rem); max-width: 16ch; }
+  .hero .dek { font-size: 1.25rem; line-height: 1.55; max-width: 38rem; margin-top: 1.4rem; }
+  .hero .byline { margin-top: 0.4rem; font-size: 0.95rem; color: var(--ink-soft); }
+
+  .sign {
+    margin-top: 2.2rem;
+    background: var(--sign-bg);
+    color: #e9eef0;
+    border-radius: 14px;
+    padding: 1.3rem 1.5rem 1.1rem;
+    max-width: 34rem;
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--sign-bg) 18%, transparent);
+  }
+  .sign-row { display: grid; grid-template-columns: 1fr auto auto; align-items: baseline; gap: 0.9rem; padding: 0.35rem 0; }
+  .sign-row + .sign-row { border-top: 1px solid #33404a; }
+  .sign-label { font-family: var(--display); font-weight: 600; font-size: 1.55rem; color: #e9eef0; }
+  .sign-old { font-family: var(--display); font-weight: 500; font-size: 1.5rem; color: var(--sign-dim); text-decoration: line-through; text-decoration-thickness: 2px; }
+  .sign-new { font-family: var(--display); font-weight: 700; font-size: clamp(2.9rem, 9vw, 4.1rem); line-height: 0.95; color: var(--sign-ink); font-variant-numeric: tabular-nums; text-shadow: 0 0 18px rgba(255, 182, 39, 0.35); min-width: 4.2ch; text-align: right; }
+  .sign-foot { font-size: 0.9rem; color: #b9c4c8; margin-top: 0.6rem; line-height: 1.45; }
+  .sign-foot b { color: var(--sign-ink); font-weight: 600; }
+
+  .trick {
+    margin-top: 1.8rem;
+    max-width: 40rem;
+    border-left: 4px solid var(--carbon);
+    padding: 0.2rem 0 0.2rem 1.1rem;
+  }
+  .trick p { margin: 0; }
+  .formula { font-family: var(--display); font-size: 1.35rem; font-weight: 600; margin: 0.35rem 0 0.4rem; line-height: 1.25; }
+
+  /* Sticky control */
+  .control {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+    margin-top: 2.2rem;
+  }
+  .control .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1.2rem; padding-top: 0.7rem; padding-bottom: 0.7rem; }
+  .control label { font-family: var(--display); font-weight: 600; font-size: 1.15rem; }
+  .control output { font-family: var(--display); font-weight: 700; font-size: 1.7rem; color: var(--carbon-text); min-width: 7.5ch; font-variant-numeric: tabular-nums; }
+  .control output small { font-size: 1rem; font-weight: 500; color: var(--ink-soft); }
+  .range { flex: 1 1 14rem; min-width: 12rem; }
+  input[type=range] { width: 100%; accent-color: var(--carbon); height: 2rem; background: transparent; }
+  .presets { display: flex; gap: 0.35rem; }
+  .presets button, .toggles button {
+    font-family: var(--display); font-weight: 600; font-size: 1.05rem;
+    color: var(--ink); background: transparent;
+    border: 1.5px solid var(--rule); border-radius: 999px;
+    padding: 0.2rem 0.8rem; cursor: pointer;
+  }
+  .presets button:hover, .toggles button:hover { border-color: var(--ink-soft); }
+  .presets button[aria-pressed="true"], .toggles button[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  section { padding: 3.6rem 0 0.5rem; }
+  .caption { font-size: 0.95rem; color: var(--ink-soft); max-width: 40rem; margin-top: 0.8rem; }
+
+  /* Price tags */
+  .tags { margin-top: 1.6rem; border-top: 1px solid var(--rule); }
+  .tag { display: grid; grid-template-columns: minmax(12rem, 16rem) 1fr 4.6rem; gap: 0.3rem 1.2rem; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--rule); }
+  .tag-name { line-height: 1.3; }
+  .tag-name strong { font-weight: 600; display: block; }
+  .tag-nums { font-size: 0.9rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  .tag-nums .add { color: var(--carbon-text); font-weight: 600; }
+  .bar { position: relative; height: 1.25rem; display: flex; }
+  .bar span { display: block; height: 100%; transition: width 0.25s ease; }
+  .b-base { background: var(--base); border-radius: 3px 0 0 3px; }
+  .b-carbon { background: var(--carbon); border-radius: 0 3px 3px 0; }
+  .tag-pct { font-family: var(--display); font-weight: 700; font-size: 1.6rem; text-align: right; color: var(--carbon-text); font-variant-numeric: tabular-nums; }
+  .legend { display: flex; flex-wrap: wrap; gap: 1.2rem; font-size: 0.92rem; color: var(--ink-soft); margin-top: 0.8rem; }
+  .key { display: inline-block; width: 0.9rem; height: 0.9rem; border-radius: 2px; vertical-align: -0.1rem; margin-right: 0.35rem; }
+
+  /* Flights */
+  .flights { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1rem; margin-top: 1.4rem; }
+  .flight { background: var(--paper-raised); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem 1.1rem; }
+  .flight .route { font-family: var(--display); font-weight: 600; font-size: 1.3rem; line-height: 1.15; }
+  .flight .meta { font-size: 0.88rem; color: var(--ink-soft); margin: 0.2rem 0 0.6rem; }
+  .flight .cost { font-family: var(--display); font-weight: 700; font-size: 2.3rem; color: var(--carbon-text); line-height: 1; font-variant-numeric: tabular-nums; }
+  .flight .cost small { font-size: 1rem; font-weight: 500; color: var(--ink-soft); }
+  .flight .flag { font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.5rem; font-style: italic; }
+
+  /* Electricity */
+  .chart { margin-top: 1.6rem; }
+  .erow { display: grid; grid-template-columns: minmax(12rem, 16rem) 1fr 4.6rem; gap: 0.3rem 1.2rem; align-items: center; padding: 0.55rem 0; }
+  .erow .lab { line-height: 1.25; font-size: 1rem; }
+  .erow .lab small { display: block; color: var(--ink-soft); font-size: 0.85rem; }
+  .erow.hl .lab { font-weight: 600; }
+  .etrack { position: relative; height: 1.4rem; }
+  .efill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--carbon); border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+  .erow.hl .efill { background: repeating-linear-gradient(-45deg, var(--carbon) 0 6px, color-mix(in srgb, var(--carbon) 65%, var(--paper)) 6px 10px); }
+  .zero-dot { position: absolute; left: 0; top: 50%; width: 0.7rem; height: 0.7rem; margin-top: -0.35rem; border-radius: 50%; border: 2px solid var(--gain); }
+  .eval { font-family: var(--display); font-weight: 700; font-size: 1.45rem; text-align: right; font-variant-numeric: tabular-nums; }
+  .refline { position: absolute; top: -0.4rem; bottom: -0.4rem; width: 0; border-left: 2px dashed var(--ink-soft); transition: left 0.25s ease; }
+  .reflabel { font-size: 0.85rem; color: var(--ink-soft); }
+  .echart { position: relative; }
+
+  /* Cart */
+  .crow { display: grid; grid-template-columns: minmax(12rem, 16rem) 1fr 4.6rem; gap: 0.3rem 1.2rem; align-items: center; padding: 0.45rem 0; }
+  .crow .lab { font-size: 1rem; line-height: 1.25; }
+  .ctrack { height: 1.1rem; position: relative; }
+  .cfill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--carbon); border-radius: 0 3px 3px 0; transition: width 0.25s ease; }
+  .crow.rest .cfill { background: var(--base); }
+  .cval { font-family: var(--display); font-weight: 700; font-size: 1.35rem; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* Revenue + distribution */
+  .equation {
+    margin: 1.6rem 0 0.4rem;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.35rem 0.7rem;
+    font-family: var(--display); font-size: 1.35rem; font-weight: 500; line-height: 1.3;
+  }
+  .equation b { font-weight: 700; font-size: 1.75rem; font-variant-numeric: tabular-nums; }
+  .equation .op { color: var(--ink-soft); }
+  .equation .result b { color: var(--carbon-text); }
+  .toggles { display: flex; flex-wrap: wrap; gap: 0.45rem; margin: 2rem 0 0.9rem; }
+  .option-note { min-height: 3.3rem; max-width: 42rem; }
+  .dist { margin-top: 1rem; }
+  .drow { display: grid; grid-template-columns: 9.5rem 1fr; gap: 0.3rem 1rem; align-items: center; padding: 0.45rem 0; }
+  .drow .lab { font-family: var(--display); font-weight: 600; font-size: 1.2rem; line-height: 1.1; }
+  .drow .lab small { display: block; font-family: var(--serif); font-weight: 400; font-size: 0.8rem; color: var(--ink-soft); }
+  .dtrack { position: relative; height: 1.9rem; }
+  .dtrack::before { content: ""; position: absolute; left: 50%; top: -0.5rem; bottom: -0.5rem; border-left: 1.5px solid var(--ink-soft); }
+  .dfill { position: absolute; top: 0.2rem; bottom: 0.2rem; transition: left 0.3s ease, width 0.3s ease, background-color 0.3s; }
+  .dval { position: absolute; top: 50%; transform: translateY(-50%); font-family: var(--display); font-weight: 700; font-size: 1.15rem; white-space: nowrap; font-variant-numeric: tabular-nums; transition: left 0.3s ease; }
+  .daxis { display: grid; grid-template-columns: 9.5rem 1fr; gap: 1rem; font-size: 0.85rem; color: var(--ink-soft); margin-top: 0.3rem; }
+  .daxis .ends { display: flex; justify-content: space-between; }
+  .extrap { font-size: 0.9rem; color: var(--loss); margin-top: 0.6rem; min-height: 1.4rem; }
+
+  /* Methods */
+  .methods { background: var(--paper-raised); border-top: 1px solid var(--rule); margin-top: 4rem; padding: 3rem 0 3.5rem; }
+  .methods section { padding-top: 0; }
+  .methods h3:first-of-type { margin-top: 1.4rem; }
+  .table-scroll { overflow-x: auto; margin: 1rem 0 0.4rem; }
+  table { border-collapse: collapse; font-size: 0.92rem; min-width: 40rem; width: 100%; }
+  th, td { text-align: left; padding: 0.5rem 0.7rem 0.5rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+  td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  ol, ul { padding-left: 1.3rem; max-width: 42rem; }
+  li { margin-bottom: 0.55rem; }
+  .sources li { font-size: 0.95rem; }
+  footer { padding: 2rem 0 3rem; font-size: 0.92rem; color: var(--ink-soft); }
+
+  @media (max-width: 680px) {
+    body { font-size: 1.05rem; }
+    .tag, .erow, .crow { grid-template-columns: 1fr auto; }
+    .tag .bar, .erow .etrack, .crow .ctrack { grid-column: 1 / -1; grid-row: 2; }
+    .tag-pct, .eval, .cval { grid-row: 1; grid-column: 2; }
+    .drow, .daxis { grid-template-columns: 6.6rem 1fr; }
+    .drow .lab { font-size: 1.05rem; }
+    .control output { font-size: 1.45rem; min-width: 0; }
+    .control label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .control .wrap { gap: 0.2rem 0.8rem; padding-top: 0.5rem; padding-bottom: 0.4rem; }
+    .control .range { order: 3; flex-basis: 100%; }
+    .presets button { padding: 0.15rem 0.6rem; font-size: 1rem; }
+    .sign { padding: 1.1rem 1.1rem 0.9rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>What does $100 a ton of CO<sub>2</sub> mean in actual life?</h1>
+    <p class="dek">Carbon prices are quoted per metric ton of carbon dioxide. Nobody buys a ton of CO₂. You buy gallons, therms, kilowatt-hours, cement, steel and plane tickets. This page converts the price into those units using federal emission factors and this fall’s prices, then shows how the answer to “who pays?” flips depending on what happens to the money.</p>
+    <p class="byline">A SHOW ME exhibit for Econ 238, Fall 2026 (topic POL-70). Reference prices are from 2025 and September 2026; see the inputs table for each date.</p>
+
+    <div class="sign" role="img" aria-labelledby="sign-desc">
+      <div class="sign-row">
+        <span class="sign-label">Regular</span>
+        <span class="sign-old" id="sg-reg-old">$4.47</span>
+        <span class="sign-new" id="sg-reg-new">$5.36</span>
+      </div>
+      <div class="sign-row">
+        <span class="sign-label">Diesel</span>
+        <span class="sign-old" id="sg-dsl-old">$6.38</span>
+        <span class="sign-new" id="sg-dsl-new">$7.40</span>
+      </div>
+      <p class="sign-foot" id="sign-desc">National average pump prices (EIA, week of Sept. 28, 2026) with a <b id="sg-price">$100</b> carbon charge added: <b id="sg-reg-add">+$0.89</b> on regular, <b id="sg-dsl-add">+$1.02</b> on diesel.</p>
+    </div>
+
+    <div class="trick">
+      <p class="small">Each direct carbon charge on this page is calculated with this formula:</p>
+      <p class="formula">carbon charge per unit = kg of CO<sub>2</sub> per unit ÷ 1,000 × price per ton</p>
+      <p class="small">Burning a gallon of gasoline releases 8.887 kg of CO₂ (EPA). At $100 a ton: 8.887 ÷ 1,000 × $100 = $0.89 a gallon. The shopping-cart and who-pays charts are different: they rescale published economic models, explained under “How this was built.”</p>
+    </div>
+  </div>
+</header>
+
+<div class="control" role="region" aria-label="Carbon price control">
+  <div class="wrap">
+    <label for="price">Carbon price</label>
+    <output id="price-out" for="price" aria-live="polite">$100 <small>per ton CO<sub>2</sub></small></output>
+    <div class="range"><input id="price" type="range" min="0" max="200" step="5" value="100" aria-describedby="price-help"></div>
+    <div class="presets" role="group" aria-label="Preset prices">
+      <button type="button" data-p="25">$25</button>
+      <button type="button" data-p="50">$50</button>
+      <button type="button" data-p="100" aria-pressed="true">$100</button>
+      <button type="button" data-p="150">$150</button>
+    </div>
+    <span id="price-help" class="small" hidden>Every chart on the page updates with this price.</span>
+  </div>
+</div>
+
+<main>
+  <section id="tags">
+    <div class="wrap">
+      <h2>The same tax bites very differently</h2>
+      <div class="prose">
+        <p>Cheap, carbon-heavy things jump the most. A metric ton of cement sells for about $160 but releases about 0.78 tons of CO₂ in the kiln, so at <span data-k="price">$100</span> its price rises <span class="carbon-word" data-k="cementPct">49%</span>. Wholesale natural gas rises <span class="carbon-word" data-k="hubPct">155%</span> because it is so cheap per unit of carbon. Gasoline is already expensive, so the same tax adds <span class="carbon-word" data-k="gasPct">20%</span>.</p>
+      </div>
+      <div class="tags" id="tag-list" aria-label="Price increases by product"></div>
+      <div class="legend">
+        <span><i class="key" style="background:var(--base)"></i>Reference price</span>
+        <span><i class="key" style="background:var(--carbon)"></i>Carbon charge added</span>
+      </div>
+      <p class="caption">Assumes the full charge is passed on to buyers and nobody changes what they buy. Reference prices come from different dates and sources (listed in the inputs table), so treat them as a snapshot, not one moment in time. Electricity uses the U.S. grid average; see below for why that hides a lot. Steel is shown two ways because how it’s made matters more than anything else.</p>
+
+      <h3>Flying is priced per passenger</h3>
+      <div class="prose">
+        <p>EPA’s travel factors divide a plane’s fuel burn across its passengers. Short hops burn more fuel per mile because takeoff and climb dominate.</p>
+      </div>
+      <div class="flights" id="flights"></div>
+      <p class="caption">Round trips, average seat, using EPA’s CO₂-only factors per passenger-mile (2025 edition: 0.207 short haul, 0.129 medium haul, 0.163 long haul). Distances are great-circle miles between the airports; flown routes are somewhat longer. These factors leave out contrails and other high-altitude effects that add warming beyond the CO₂. Treasury’s sample carbon tax design would exempt fuel for international flights, so the London trip might carry no charge at all unless Congress chose otherwise.</p>
+    </div>
+  </section>
+
+  <section id="electricity">
+    <div class="wrap">
+      <h2>Electricity depends on who made it</h2>
+      <div class="prose">
+        <p>A coal plant releases about 2.3 pounds of CO₂ per kilowatt-hour; a modern gas combined-cycle plant about 0.84; nuclear, wind, solar and hydro release none at the plant. At <span data-k="price">$100</span>, that is the difference between <span class="carbon-word" data-k="coalC">10.5¢</span> and nothing on every kilowatt-hour, against an average U.S. home price of 17.3¢ in 2025.</p>
+      </div>
+      <div class="chart echart" id="echart" aria-label="Carbon charge per kilowatt-hour by generator type"></div>
+      <p class="caption">Carbon charge in cents per kWh at your price. Residential price: EIA 2025 annual average (Monthly Energy Review, Table 9.8). Coal, oil, gas fleet and grid averages are 2023 actuals from EIA; the two gas plant types are computed from EIA heat rates (7,146 and about 10,000 Btu per kWh) times EPA’s 53.06 kg CO₂ per million Btu.</p>
+      <div class="prose">
+        <p>The grid average understates what happens in power markets. In most wholesale markets the price is set by the last plant needed to meet demand, which is often gas. A carbon price lifts that price for everyone, so zero-carbon plants earn more while coal plants see their costs rise the most. That reshuffles which plants run first without anyone picking winners.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="cart">
+    <div class="wrap">
+      <h2>Through the shopping cart</h2>
+      <div class="prose">
+        <p>Most of what households buy isn’t energy. Treasury’s Office of Tax Analysis traced a carbon tax through 389 industries to 33 consumer spending categories. Energy bills jump. Nearly everything else rises far less, because energy is a small slice of what it costs to make most things.</p>
+      </div>
+      <div class="chart" id="cart-chart" aria-label="Consumer price increases by category"></div>
+      <p class="caption">Treasury’s estimates at $49 a ton in 2019 dollars (about $64 today), scaled in proportion to your price, before Treasury’s adjustment that holds the overall price level fixed. Percentages are relative to 2019 prices; today’s higher energy prices would make the energy bars somewhat smaller.</p>
+    </div>
+  </section>
+
+  <section id="who-pays">
+    <div class="wrap">
+      <h2>Who pays depends on where the money goes</h2>
+      <div class="prose">
+        <p>The U.S. released 4.90 billion metric tons of energy-related CO₂ in 2025 (EIA). Taxing all of it raises a lot of money, and what Congress does with that money decides who comes out ahead.</p>
+      </div>
+      <h3>Example 1: split the money equally among everyone</h3>
+      <div class="equation" aria-live="polite">
+        <span><b>4.90</b> billion tons</span><span class="op">×</span>
+        <span><b data-k="price">$100</b></span><span class="op">=</span>
+        <span><b data-k="gross">$490</b> billion a year</span><span class="op">→</span>
+        <span>minus about 25% lost from other taxes</span><span class="op">=</span>
+        <span><b data-k="net">$368</b> billion</span><span class="op">÷</span>
+        <span>341.8 million people</span><span class="op">=</span>
+        <span class="result"><b data-k="pp">$1,075</b> per person</span>
+      </div>
+      <p class="small">That is <span data-k="fam4">$4,300</span> for a family of four if every person, adult or child, got the same share. Static math: in reality emissions fall as people respond, so revenue shrinks over time. Treasury projected a $49-and-rising tax would cut covered emissions about 21% below baseline within five years.</p>
+
+      <h3>Example 2: the Tax Policy Center’s model of who wins and loses</h3>
+      <div class="prose">
+        <p>This is a separate scenario from Example 1. It comes from a published microsimulation with its own rules and revenue estimates; in its rebate option, each adult gets an equal check and each dependent gets half.</p>
+      </div>
+      <div class="toggles" role="group" aria-label="What happens to the revenue">
+        <button type="button" data-opt="0">Government keeps it</button>
+        <button type="button" data-opt="1">Cut payroll taxes</button>
+        <button type="button" data-opt="2">Cut corporate taxes</button>
+        <button type="button" data-opt="3" aria-pressed="true">Per-person rebate (dependents half)</button>
+      </div>
+      <p class="option-note" id="opt-note" aria-live="polite"></p>
+
+      <div class="dist" id="dist" aria-label="Net change by income group"></div>
+      <div class="daxis"><span></span><div class="ends"><span id="ax-l">← loses</span><span>0</span><span id="ax-r">gains →</span></div></div>
+      <p class="extrap" id="extrap"></p>
+      <p class="caption">Average net change for each income group as a percent of pretax income, after the carbon tax and the chosen use of revenue, from the Urban-Brookings Tax Policy Center’s microsimulation (Rosenberg, Toder and Lu, 2018). TPC ran $14, $50 and $73 per ton in 2016 dollars. Your price is converted to 2016 dollars with the CPI and scaled along a straight line fitted through those three runs; the inputs and fit are listed under “How this was built.” These are group averages: within every group, some households win and some lose.</p>
+    </div>
+  </section>
+</main>
+
+<div class="methods">
+  <div class="wrap">
+    <section id="methods">
+      <h2>How this was built</h2>
+      <div class="prose">
+        <p>The direct carbon charges can be rebuilt with a calculator and the sources below. The shopping-cart and who-pays charts rescale published model results; their inputs and the scaling steps are in the two expandable tables after the main inputs. The page is one HTML file, and all of the numbers also sit in a short block of JavaScript at the bottom, so anyone can view the source, change an assumption and ask the next question.</p>
+      </div>
+
+      <h3>The inputs</h3>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Item</th><th>CO₂ per unit</th><th>Reference price</th><th>Where the numbers come from</th></tr></thead>
+          <tbody>
+            <tr><td>Gasoline</td><td class="n">8.887 kg / gallon</td><td class="n">$4.47 / gal</td><td>EPA vehicle emissions factsheet; EIA weekly U.S. retail average, week of Sept. 28, 2026 (observed)</td></tr>
+            <tr><td>Diesel</td><td class="n">10.180 kg / gallon</td><td class="n">$6.38 / gal</td><td>EPA; EIA weekly U.S. retail average, week of Sept. 28, 2026 (observed)</td></tr>
+            <tr><td>Natural gas, home</td><td class="n">5.306 kg / therm</td><td class="n">≈$1.48 / therm</td><td>EPA (53.06 kg per million Btu); EIA 2025 annual average residential price, $15.34 per thousand cubic feet, ÷ 10.36 therms per thousand cubic feet (EIA’s average heat content, 1,036 Btu per cubic foot)</td></tr>
+            <tr><td>Natural gas, wholesale</td><td class="n">53.06 kg / MMBtu</td><td class="n">$3.52 / MMBtu</td><td>EPA; EIA Henry Hub spot price, 2025 annual average (observed)</td></tr>
+            <tr><td>Electricity, grid average</td><td class="n">0.367 kg / kWh</td><td class="n">17.3¢ / kWh</td><td>EIA (0.81 lb/kWh, 2023); EIA 2025 annual average residential price, Monthly Energy Review Table 9.8</td></tr>
+            <tr><td>Electricity by plant type</td><td class="n">0 to 1.12 kg / kWh</td><td class="n">—</td><td>EIA 2023 fleet averages (coal 2.31, oil 2.46, gas 0.96 lb/kWh); EIA heat rates × EPA gas factor</td></tr>
+            <tr><td>Portland cement</td><td class="n">0.776 t / t</td><td class="n">$160 / t</td><td>EPA Greenhouse Gas Reporting Program median U.S. plant, 2019 (direct kiln emissions); USGS Mineral Commodity Summaries 2026, 2025 estimated average mill value</td></tr>
+            <tr><td>Steel, blast furnace</td><td class="n">2.34 t / t</td><td class="n">$1,350 / t</td><td>worldsteel Sustainability Indicators Report 2025, 2024 data (CO₂ intensity including electricity and some upstream emissions); U.S. hot-rolled coil ≈$1,225 per short ton, mid-September 2026 spot (Steel Market Update via GMK Center)</td></tr>
+            <tr><td>Steel, electric arc (scrap)</td><td class="n">0.69 t / t</td><td class="n">$1,350 / t</td><td>Same worldsteel report and table; same price</td></tr>
+            <tr><td>Flights</td><td class="n">0.129 to 0.207 kg CO₂ / passenger-mile</td><td class="n">—</td><td>EPA GHG Emission Factors Hub (January 2025), Table 10, CO₂ factors: short haul 0.207, medium haul 0.129, long haul 0.163</td></tr>
+            <tr><td>Flight distances</td><td class="n">253 / 1,035 / 2,470 / 3,442 mi one way</td><td class="n">—</td><td>ROC–LGA, ROC–MCO, JFK–LAX and JFK–LHR great-circle distances, computed from airport coordinates with the haversine formula (Earth radius 3,959 miles); doubled for round trips</td></tr>
+            <tr><td>U.S. emissions</td><td class="n">4,904 million t (2025)</td><td class="n">—</td><td>EIA, U.S. Energy-Related CO₂ Emissions, 2025</td></tr>
+            <tr><td>U.S. population</td><td class="n">341.8 million</td><td class="n">—</td><td>Census Bureau Vintage 2025 estimate for July 1, 2025 (341,784,857), released Jan. 27, 2026</td></tr>
+            <tr><td>Revenue offset</td><td class="n">25%</td><td class="n">—</td><td>Standard Treasury / JCT / CBO assumption for excise taxes (Treasury OTA Working Paper 115)</td></tr>
+            <tr><td>Inflation adjustments</td><td class="n">CPI-U 334.980; 240.007; 255.657</td><td class="n">—</td><td>BLS: August 2026 index; 2016 annual average (converts your price for the TPC chart); 2019 annual average (converts Treasury’s $49 to about $64.20 today for the shopping-cart chart)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <details>
+        <summary>Model inputs: Tax Policy Center scenarios and fitted lines (who-pays chart)</summary>
+        <p class="small">TPC Table 4a, tax year 2020: change in taxes as a percent of pretax income at $14, $50 and $73 per ton in 2016 dollars (positive = pays more). For each group and revenue option, the fitted change per $1 is the least-squares slope through zero: Σ(price × value) ÷ Σ(price²), with Σ(price²) = 8,025. The chart shows −slope × (your price ÷ 1.3957), where 1.3957 = 334.980 ÷ 240.007.</p>
+        <div class="table-scroll"><table id="tpc-table"></table></div>
+      </details>
+      <details>
+        <summary>Model inputs: Treasury price increases (shopping-cart chart)</summary>
+        <p class="small">Treasury OTA Working Paper 115, Table 4: consumer price increases from a $49 per ton tax in 2019 dollars, before Treasury’s adjustment that holds the overall price level fixed. The chart multiplies each by your price ÷ $64.20, where $64.20 = $49 × 334.980 ÷ 255.657.</p>
+        <div class="table-scroll"><table id="cart-table"></table></div>
+      </details>
+
+      <h3>How I used AI</h3>
+      <div class="prose">
+        <p>I claimed this topic from the class list and asked Claude (Anthropic) to research it and build the exhibit. The following steps were completed:</p>
+      </div>
+      <ol>
+        <li>Searched for official CO₂ emission factors for each item in the topic, preferring federal sources (EPA, EIA) or the industry’s own reporting body (worldsteel).</li>
+        <li>Pulled reference prices: EIA weekly fuel prices (September 2026), EIA 2025 annual electricity and natural gas prices, USGS’s 2025 cement estimate, and a mid-September 2026 U.S. steel price.</li>
+        <li>Converted gas-plant heat rates into kg of CO₂ per kWh (heat rate in million Btu per MWh × 53.06 kg per million Btu) and converted EIA’s pounds into kilograms.</li>
+        <li>Found published studies that model the same carbon tax with different uses of the revenue: Treasury’s 2017 methodology paper and the Tax Policy Center’s 2018 study.</li>
+        <li>Checked whether TPC’s results scale with the tax rate. Across their $14, $50 and $73 runs the effects are close to proportional, so a straight line through the origin fits well. Their $73 (2016 dollars) is about $102 in today’s dollars, so $100 sits just inside their highest scenario.</li>
+        <li>Wrote the page as a single interactive file with one price slider driving every chart, and listed every input in the tables in this section.</li>
+        <li>After review, matched the flight and steel factors to their cited editions, relabeled reference prices with their dates, separated the two rebate examples, and documented the model inputs.</li>
+      </ol>
+      <div class="prose">
+        <p>All inputs are listed in this section, including the two expandable model tables. The direct charges can be checked by hand with the formula at the top.</p>
+      </div>
+
+      <h3>Kicking the tires</h3>
+      <ul>
+        <li><strong>Who really pays.</strong> The price-tag charts assume full pass-through to buyers. In reality the burden splits among consumers, workers and owners, depending on how responsive each side is. Treasury and TPC model this explicitly; the price tags don’t.</li>
+        <li><strong>Behavior.</strong> Everything is a snapshot before anyone adjusts. Utilities would run less coal, people would drive a bit less, and both the costs and the revenue would shrink over time.</li>
+        <li><strong>CO₂ only.</strong> Methane leaks from gas systems and non-CO₂ effects from aviation are left out, which flatters natural gas and flying.</li>
+        <li><strong>Averages hide plants.</strong> Individual coal plants, gas turbines and cement kilns vary a lot from the fleet averages used here.</li>
+        <li><strong>Trade.</strong> Cement and steel compete with imports. Without a border adjustment, a U.S.-only carbon price could shift production abroad rather than cut emissions.</li>
+        <li><strong>Prices move.</strong> Gasoline is about a dollar higher than a year ago, which makes the carbon charge a smaller percentage than it would have been in 2025.</li>
+        <li><strong>The distribution study is dated.</strong> TPC modeled 2020 incomes under 2018 tax law, and “government keeps it” shows no benefit because TPC doesn’t assign any value to lower deficits.</li>
+      </ul>
+
+      <h3>Next questions someone could ask</h3>
+      <ul>
+        <li>What if half the revenue went to equal checks and half to payroll tax cuts?</li>
+        <li>How much cheaper is the electricity charge in New York, whose grid is cleaner than the national average, than in a coal-heavy state?</li>
+        <li>How much would emissions actually fall at $100, and how fast would revenue shrink?</li>
+        <li>What would a border carbon adjustment add to the price of imported steel from China versus Canada?</li>
+        <li>Where does “$100” come from? How does the social cost of carbon change with the discount rate?</li>
+      </ul>
+
+      <h3>Sources</h3>
+      <ul class="sources">
+        <li>U.S. EPA, <a href="https://www.epa.gov/greenvehicles/greenhouse-gas-emissions-typical-passenger-vehicle">Greenhouse Gas Emissions from a Typical Passenger Vehicle</a>.</li>
+        <li>U.S. EPA, <a href="https://www.epa.gov/energy/greenhouse-gas-equivalencies-calculator-calculations-and-references">Greenhouse Gas Equivalencies Calculator: Calculations and References</a>.</li>
+        <li>U.S. EPA, <a href="https://www.epa.gov/system/files/documents/2025-01/ghg-emission-factors-hub-2025.pdf">GHG Emission Factors Hub, January 2025</a>, Table 10 (business travel CO₂ factors).</li>
+        <li>U.S. EPA, <a href="https://www.epa.gov/system/files/documents/2021-10/cement-carbon-intensities-fact-sheet.pdf">Cement Carbon Intensities Fact Sheet</a> (2021).</li>
+        <li>U.S. EIA, <a href="https://www.eia.gov/tools/faqs/faq.php?id=74">How much carbon dioxide is produced per kilowatthour of U.S. electricity generation?</a></li>
+        <li>U.S. EIA, <a href="https://www.eia.gov/todayinenergy/detail.php?id=52158">Most combined-cycle power plants employ two combustion turbines with one steam turbine</a> (heat rates).</li>
+        <li>U.S. EIA, <a href="https://www.eia.gov/dnav/pet/pet_pri_gnd_dcus_nus_w.htm">Weekly Retail Gasoline and Diesel Prices</a>.</li>
+        <li>U.S. EIA, Monthly Energy Review, <a href="https://www.eia.gov/totalenergy/data/browser/index.php?tbl=T09.08">Table 9.8: Average Retail Prices of Electricity</a>; <a href="https://www.eia.gov/dnav/ng/hist/n3010us3a.htm">U.S. Price of Natural Gas Delivered to Residential Consumers, annual</a>; <a href="https://www.eia.gov/dnav/ng/hist/rngwhhda.htm">Henry Hub Natural Gas Spot Price, annual</a>; <a href="https://www.eia.gov/energyexplained/units-and-calculators/">Units and calculators</a> (heat content of natural gas).</li>
+        <li>U.S. EIA, <a href="https://www.eia.gov/environment/emissions/carbon/">U.S. Energy-Related Carbon Dioxide Emissions, 2025</a> (July 2026).</li>
+        <li>U.S. Geological Survey, <a href="https://pubs.usgs.gov/periodicals/mcs2026/mcs2026-cement.pdf">Mineral Commodity Summaries 2026: Cement</a>.</li>
+        <li>World Steel Association, <a href="https://worldsteel.org/wider-sustainability/sustainability-indicators/">Sustainability Indicators Report 2025</a> (November 2025; route-level CO₂ intensity table for 2022–2024 added February 2026).</li>
+        <li>U.S. Census Bureau, <a href="https://www.census.gov/newsroom/press-releases/2026/vintage-2025-pop-estimates.html">Vintage 2025 population estimates</a> (January 2026).</li>
+        <li>GMK Center, <a href="https://gmk.center/en/news/nucor-has-raised-the-price-of-hot-rolled-coils-to-1-200-per-short-tonne/">Nucor has raised the price of hot-rolled coils</a> (Sept. 15, 2026), citing Steel Market Update.</li>
+        <li>Horowitz, Cronin, Hawkins, Konda and Yuskavage, <a href="https://home.treasury.gov/system/files/131/WP-115.pdf">Methodology for Analyzing a Carbon Tax</a>, U.S. Treasury OTA Working Paper 115 (2017).</li>
+        <li>Rosenberg, Toder and Lu, <a href="https://taxpolicycenter.org/sites/default/files/publication/155473/distributional_implications_of_a_carbon_tax_5.pdf">Distributional Implications of a Carbon Tax</a>, Urban-Brookings Tax Policy Center and Columbia SIPA (2018).</li>
+        <li>U.S. BLS, <a href="https://www.bls.gov/news.release/archives/cpi_09112026.htm">Consumer Price Index, August 2026</a>, and <a href="https://www.bls.gov/cpi/">CPI-U annual averages</a> (2016 and 2019).</li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p>Exhibit by Benjamin Mahmutovic, Econ 238, Fall 2026. Topic POL-70. Built with research and coding help from Claude; all inputs are listed above so you can check them.</p>
+  </div>
+</footer>
+
+<noscript><p class="wrap">This exhibit needs JavaScript for the interactive charts. All inputs and sources are listed in the table above.</p></noscript>
+
+<script>
+(() => {
+  // ---------- Inputs (edit these to ask the next question) ----------
+  const CPI_NOW = 334.980;   // CPI-U, August 2026
+  const CPI_2016 = 240.007;  // CPI-U, 2016 annual average
+  const CPI_2019 = 255.657;  // CPI-U, 2019 annual average
+
+  const SIGN = { regular: { kg: 8.887, base: 4.47 }, diesel: { kg: 10.180, base: 6.38 } };
+
+  // kg CO2 per unit, price per unit in dollars
+  const TAGS = [
+    { name: "Natural gas, wholesale", unit: "per million Btu at Henry Hub", kg: 53.06, base: 3.52, when: "2025 average", key: "hubPct" },
+    { name: "Portland cement", unit: "per metric ton", kg: 776, base: 160, when: "2025 estimate", key: "cementPct" },
+    { name: "Natural gas for your home", unit: "per therm", kg: 5.306, base: 15.34 / 10.36, when: "2025 average" },
+    { name: "Electricity at home", unit: "per kWh, U.S. grid average", kg: 0.3674, base: 0.1730, when: "2025 average", cents: true },
+    { name: "Gasoline", unit: "per gallon, regular", kg: 8.887, base: 4.47, when: "week of Sept. 28, 2026", key: "gasPct" },
+    { name: "Steel from iron ore", unit: "per metric ton, blast furnace", kg: 2340, base: 1350, when: "mid-Sept. 2026" },
+    { name: "Diesel", unit: "per gallon", kg: 10.180, base: 6.38, when: "week of Sept. 28, 2026" },
+    { name: "Steel from scrap", unit: "per metric ton, electric arc furnace", kg: 690, base: 1350, when: "mid-Sept. 2026" }
+  ];
+
+  // round-trip miles, kg CO2e per passenger-mile (EPA hub)
+  const FLIGHTS = [
+    { route: "Rochester ⇄ New York (LGA)", miles: 506, f: 0.207, band: "short haul" },
+    { route: "Rochester ⇄ Orlando", miles: 2070, f: 0.129, band: "medium haul" },
+    { route: "New York (JFK) ⇄ Los Angeles", miles: 4940, f: 0.163, band: "long haul" },
+    { route: "New York (JFK) ⇄ London (LHR)", miles: 6884, f: 0.163, band: "long haul", intl: true }
+  ];
+
+  // kg CO2 per kWh
+  const GENS = [
+    { name: "Oil-fired plants", note: "U.S. fleet average", kg: 2.46 * 0.45359 },
+    { name: "Coal plants", note: "U.S. fleet average", kg: 2.31 * 0.45359, key: "coalC" },
+    { name: "Gas peaker", note: "simple-cycle turbine", kg: 10.0 * 0.05306 },
+    { name: "Gas plants", note: "U.S. fleet average", kg: 0.96 * 0.45359 },
+    { name: "Gas combined cycle", note: "modern baseload plant", kg: 7.146 * 0.05306 },
+    { name: "U.S. grid average", note: "all sources, 2023", kg: 0.81 * 0.45359, hl: true },
+    { name: "Nuclear, wind, solar, hydro", note: "no CO₂ at the plant", kg: 0 }
+  ];
+  const HOME_PRICE_C = 17.30; // cents per kWh, 2025 U.S. residential average (EIA)
+
+  // Treasury OTA Table 4: price increase at $49 (2019$), before price-level normalization
+  const CART = [
+    { name: "Natural gas", v: 27.0 }, { name: "Electricity", v: 16.9 }, { name: "Home heating oil", v: 12.4 },
+    { name: "Gasoline", v: 11.8 }, { name: "Air travel", v: 7.5 }, { name: "Mass transit", v: 6.4 },
+    { name: "Water", v: 3.6 }, { name: "Everything else: food, clothing, rent, health care", v: 2.0, rest: true }
+  ];
+  const TREASURY_P_NOW = 49 * CPI_NOW / CPI_2019; // ≈ $64
+
+  // TPC 2018, Table 4a (2020): slope of tax change (% of pretax income) per $1 (2016$),
+  // fitted through the origin across the $14, $50 and $73 runs.
+  // Columns: [government keeps it, payroll cut, corporate cut, per-person rebate]. Positive = tax increase.
+  // TPC Table 4a (2020): tax change as % of pretax income at $14, $50 and $73 per ton (2016 dollars).
+  // Order of options: [government keeps it, payroll cut, corporate cut, per-person rebate]. Positive = pays more.
+  const TPC_PRICES = [14, 50, 73];
+  const TPC_RAW = [
+    ["Lowest 20%", "by income", [[0.6, 2.1, 3.1], [0.2, 0.5, 0.8], [0.5, 1.7, 2.5], [-1.6, -5.3, -7.5]]],
+    ["Second 20%", "", [[0.5, 1.8, 2.6], [0.1, 0.4, 0.5], [0.4, 1.3, 1.8], [-0.5, -1.5, -2.2]]],
+    ["Middle 20%", "", [[0.5, 1.6, 2.3], [0.0, 0.1, 0.1], [0.3, 0.9, 1.3], [-0.1, -0.4, -0.6]]],
+    ["Fourth 20%", "", [[0.5, 1.4, 2.0], [-0.1, -0.3, -0.4], [0.2, 0.5, 0.8], [0.0, 0.1, 0.1]]],
+    ["Top 20%", "", [[0.3, 1.1, 1.6], [0.0, 0.0, 0.0], [-0.2, -0.7, -1.0], [0.2, 0.6, 0.8]]],
+    ["Top 1%", "", [[0.3, 0.9, 1.3], [0.2, 0.6, 0.9], [-0.6, -1.9, -2.7], [0.2, 0.8, 1.1]]]
+  ];
+  // Least-squares line through zero: slope = Σ(price × value) ÷ Σ(price²)
+  const fitSlope = v => v.reduce((acc, x, j) => acc + x * TPC_PRICES[j], 0) / TPC_PRICES.reduce((acc, q) => acc + q * q, 0);
+  const GROUPS = TPC_RAW.map(([a, b, vals]) => [a, b, vals.map(fitSlope)]);
+  const OPT_NOTES = [
+    "The government keeps the money. Every group pays, and lower-income households pay a larger share of their income. (TPC gives no credit for lower deficits.)",
+    "Cut workers’ share of the Social Security payroll tax. Close to a wash in the middle and a small gain for the fourth fifth; the bottom 40% (less wage income to cut taxes on) and the top 1% (income above the payroll cap) come out behind.",
+    "Cut the corporate income tax. The benefit flows mostly to shareholders, so the top 20% gain while the bottom 80% lose.",
+    "TPC’s rebate: every adult gets an equal check and each dependent gets half as much. The bottom three-fifths come out ahead on average, the fourth fifth roughly breaks even, and the top fifth pays more than it gets back."
+  ];
+
+  const US_CO2_T = 4.904e9, OFFSET = 0.25, POP = 341.8e6; // population: Census Bureau, July 1, 2025
+
+  // ---------- Helpers ----------
+  const $ = (s, el = document) => el.querySelector(s);
+  const money = v => v < 20 ? "$" + v.toFixed(2) : "$" + Math.round(v).toLocaleString("en-US");
+  const cents = d => (d * 100).toFixed(1) + "¢";
+  const fmtUnit = (v, isCents) => isCents ? cents(v) : money(v);
+
+  let P = 100, opt = 3;
+
+  // ---------- Build static structure ----------
+  const tagList = $("#tag-list");
+  TAGS.forEach((t, i) => {
+    t.el = document.createElement("div");
+    t.el.className = "tag";
+    t.el.innerHTML =
+      `<div class="tag-name"><strong>${t.name}</strong><span class="small">${t.unit}</span>
+         <div class="tag-nums"></div></div>
+       <div class="bar" aria-hidden="true"><span class="b-base"></span><span class="b-carbon"></span></div>
+       <div class="tag-pct"></div>`;
+    tagList.appendChild(t.el);
+  });
+
+  const flightsEl = $("#flights");
+  FLIGHTS.forEach(f => {
+    f.kgTotal = f.miles * f.f;
+    f.el = document.createElement("div");
+    f.el.className = "flight";
+    f.el.innerHTML =
+      `<div class="route">${f.route}</div>
+       <div class="meta">${f.miles.toLocaleString("en-US")} miles round trip, ${f.band}<br>${Math.round(f.kgTotal).toLocaleString("en-US")} kg CO₂ per passenger</div>
+       <div class="cost"></div>` + (f.intl ? `<div class="flag">Possibly exempt as international aviation fuel</div>` : "");
+    flightsEl.appendChild(f.el);
+  });
+
+  const echart = $("#echart");
+  GENS.forEach(g => {
+    g.el = document.createElement("div");
+    g.el.className = "erow" + (g.hl ? " hl" : "");
+    g.el.innerHTML =
+      `<div class="lab">${g.name}<small>${g.note}, ${(g.kg).toFixed(2)} kg/kWh</small></div>
+       <div class="etrack">${g.kg === 0 ? '<span class="zero-dot"></span>' : '<span class="efill"></span>'}<span class="refline"></span></div>
+       <div class="eval"></div>`;
+    echart.appendChild(g.el);
+  });
+  const refNote = document.createElement("p");
+  refNote.className = "reflabel";
+  refNote.innerHTML = "Dashed line: 17.3¢, the average U.S. residential price per kWh in 2025.";
+  echart.appendChild(refNote);
+
+  const cartEl = $("#cart-chart");
+  CART.forEach(c => {
+    c.el = document.createElement("div");
+    c.el.className = "crow" + (c.rest ? " rest" : "");
+    c.el.innerHTML = `<div class="lab">${c.name}</div><div class="ctrack"><span class="cfill"></span></div><div class="cval"></div>`;
+    cartEl.appendChild(c.el);
+  });
+
+  const distEl = $("#dist");
+  GROUPS.forEach(g => {
+    g.el = document.createElement("div");
+    g.el.className = "drow";
+    g.el.innerHTML = `<div class="lab">${g[0]}${g[1] ? `<small>${g[1]}</small>` : ""}</div>
+      <div class="dtrack"><span class="dfill"></span><span class="dval"></span></div>`;
+    distEl.appendChild(g.el);
+  });
+
+  // ---------- Render ----------
+  function render() {
+    // Control + text bindings
+    $("#price-out").innerHTML = `$${P} <small>per ton CO<sub>2</sub></small>`;
+    document.querySelectorAll('.presets button').forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.p === P)));
+
+    // Sign
+    const rAdd = SIGN.regular.kg / 1000 * P, dAdd = SIGN.diesel.kg / 1000 * P;
+    $("#sg-reg-old").textContent = money(SIGN.regular.base);
+    $("#sg-dsl-old").textContent = money(SIGN.diesel.base);
+    $("#sg-reg-new").textContent = money(SIGN.regular.base + rAdd);
+    $("#sg-dsl-new").textContent = money(SIGN.diesel.base + dAdd);
+    $("#sg-reg-add").textContent = "+" + money(rAdd);
+    $("#sg-dsl-add").textContent = "+" + money(dAdd);
+    $("#sg-price").textContent = "$" + P;
+
+    const bind = {};
+    bind.price = "$" + P;
+
+    // Price tags (dynamic scale so the longest bar fits)
+    const maxTotal = Math.max(...TAGS.map(t => 1 + (t.kg / 1000 * P) / t.base));
+    TAGS.forEach(t => {
+      const add = t.kg / 1000 * P;
+      const rise = add / t.base * 100;
+      const baseW = 100 / maxTotal;
+      const addW = (add / t.base) * baseW;
+      t.el.querySelector(".b-base").style.width = baseW + "%";
+      t.el.querySelector(".b-carbon").style.width = addW + "%";
+      t.el.querySelector(".tag-pct").textContent = "+" + Math.round(rise) + "%";
+      t.el.querySelector(".tag-nums").innerHTML =
+        `${fmtUnit(t.base, t.cents)} reference (${t.when}) <span class="add">+ ${fmtUnit(add, t.cents)}</span> = ${fmtUnit(t.base + add, t.cents)}`;
+      if (t.key) bind[t.key] = Math.round(rise) + "%";
+    });
+
+    // Flights
+    FLIGHTS.forEach(f => {
+      f.el.querySelector(".cost").innerHTML = `+$${Math.round(f.kgTotal / 1000 * P)} <small>per ticket</small>`;
+    });
+
+    // Electricity
+    const eMax = Math.max(HOME_PRICE_C, GENS[0].kg * P / 10) * 1.08;
+    GENS.forEach(g => {
+      const c = g.kg * P / 10; // cents per kWh: kg/kWh × $/t ÷ 1000 × 100
+      const fill = g.el.querySelector(".efill");
+      if (fill) fill.style.width = (c / eMax * 100) + "%";
+      g.el.querySelector(".refline").style.left = (HOME_PRICE_C / eMax * 100) + "%";
+      g.el.querySelector(".eval").textContent = c.toFixed(1) + "¢";
+      if (g.key) bind[g.key] = c.toFixed(1) + "¢";
+    });
+
+    // Cart
+    const k = P / TREASURY_P_NOW;
+    const cMax = Math.max(CART[0].v * k, 5) * 1.08;
+    CART.forEach(c => {
+      const v = c.v * k;
+      c.el.querySelector(".cfill").style.width = (v / cMax * 100) + "%";
+      c.el.querySelector(".cval").textContent = (c.rest ? "< " : "+") + (v < 9.95 ? v.toFixed(1) : Math.round(v)) + "%";
+    });
+
+    // Revenue
+    const gross = US_CO2_T * P, net = gross * (1 - OFFSET), pp = net / POP;
+    bind.gross = "$" + Math.round(gross / 1e9).toLocaleString("en-US");
+    bind.net = "$" + Math.round(net / 1e9).toLocaleString("en-US");
+    bind.pp = "$" + Math.round(pp).toLocaleString("en-US");
+    bind.fam4 = "$" + (Math.round(pp * 4 / 10) * 10).toLocaleString("en-US");
+
+    // Distribution
+    const P16 = P / (CPI_NOW / CPI_2016);
+    let maxAbs = 0.5;
+    GROUPS.forEach(g => g[2].forEach(s => { maxAbs = Math.max(maxAbs, Math.abs(s * P16)); }));
+    // Leave room for the value label (about 3.8rem) at each end of the track.
+    const tw = Math.max(GROUPS[0].el.querySelector(".dtrack").clientWidth, 160);
+    const half = ((tw / 2 - 62) / maxAbs) / tw * 100; // % of track per percentage point
+    GROUPS.forEach(g => {
+      const gain = -g[2][opt] * P16; // positive = household gains
+      const fill = g.el.querySelector(".dfill"), val = g.el.querySelector(".dval");
+      const w = Math.abs(gain) * half;
+      fill.style.width = w + "%";
+      fill.style.left = (gain >= 0 ? 50 : 50 - w) + "%";
+      fill.style.backgroundColor = gain >= 0 ? "var(--gain)" : "var(--loss)";
+      fill.style.borderRadius = gain >= 0 ? "0 3px 3px 0" : "3px 0 0 3px";
+      const label = (Math.abs(gain) < 0.05 ? "0.0" : (gain > 0 ? "+" : "−") + Math.abs(gain).toFixed(1)) + "%";
+      val.textContent = label;
+      val.style.color = Math.abs(gain) < 0.05 ? "var(--ink-soft)" : (gain > 0 ? "var(--gain)" : "var(--loss)");
+      val.style.left = gain >= 0 ? `calc(${50 + w}% + 0.4rem)` : `calc(${50 - w}% - 0.4rem)`;
+      val.style.transform = gain >= 0 ? "translateY(-50%)" : "translate(-100%, -50%)";
+    });
+    $("#opt-note").textContent = OPT_NOTES[opt];
+    document.querySelectorAll('.toggles button').forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.opt === opt)));
+    $("#extrap").textContent = P16 > 73.5
+      ? `Above about $102 these bars extend TPC’s estimates beyond their highest scenario, so treat them as rougher.`
+      : (P === 0 ? "At $0 there is no tax and nothing to return." : "");
+
+    document.querySelectorAll("[data-k]").forEach(el => { if (bind[el.dataset.k] !== undefined) el.textContent = bind[el.dataset.k]; });
+  }
+
+  // ---------- Events ----------
+  const slider = $("#price");
+  slider.addEventListener("input", () => { P = +slider.value; render(); });
+  document.querySelectorAll(".presets button").forEach(b => b.addEventListener("click", () => {
+    P = +b.dataset.p; slider.value = P; render();
+  }));
+  document.querySelectorAll(".toggles button").forEach(b => b.addEventListener("click", () => {
+    opt = +b.dataset.opt; render();
+  }));
+
+  // Model input tables
+  const opts = ["Government keeps it", "Payroll tax cut", "Corporate tax cut", "Per-person rebate"];
+  document.getElementById("tpc-table").innerHTML = "<tr><th class='l'>Group</th><th class='l'>Revenue use</th><th>$14</th><th>$50</th><th>$73</th><th>Fitted change per $1</th></tr>" +
+    TPC_RAW.map(([g, , vals]) => vals.map((v, k) => `<tr><td class="l">${k === 0 ? g : ""}</td><td class="l">${opts[k]}</td>${v.map(x => `<td>${x.toFixed(1)}</td>`).join("")}<td>${fitSlope(v).toFixed(5)}</td></tr>`).join("")).join("");
+  document.getElementById("cart-table").innerHTML = "<tr><th class='l'>Category</th><th>Price increase at $49 (2019 dollars)</th></tr>" +
+    CART.map(c => `<tr><td class="l">${c.name}</td><td>${c.rest ? "2.0% or less" : c.v.toFixed(1) + "%"}</td></tr>`).join("");
+
+  let rt;
+  window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(render, 120); });
+  render();
+})();
+</script>
+</body>
+</html>
